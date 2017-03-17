@@ -1,5 +1,10 @@
 package app.firstapiaiapp.example.com.firstaiapiapp;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 //Importing text buttons and views from activity_main.xml
@@ -18,6 +23,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements AIListener{
 
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
     private Button listenButton;
     private TextView resultTextView;
@@ -25,7 +31,22 @@ public class MainActivity extends AppCompatActivity implements AIListener{
     private AIService aiService;
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay!
+                } else {
+                    // exit app
+                    finish();
+                }
+        }
+    }
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -39,7 +60,11 @@ public class MainActivity extends AppCompatActivity implements AIListener{
         aiService = AIService.getService(this, config);
         aiService.setListener(this);
 
-
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},
+                    REQUEST_RECORD_AUDIO_PERMISSION);
+        }
     }
 
     public void listenButtonOnClick(final View view) {
